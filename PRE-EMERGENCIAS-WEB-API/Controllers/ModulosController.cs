@@ -191,10 +191,62 @@ public sealed class ModulosController(AppDbContext db) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Elimina físicamente un módulo solo si no tiene pisos ni otras referencias.</summary>
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "El ID del módulo debe ser positivo.");
+        }
+
+        var modulo = await db.Modulos.SingleOrDefaultAsync(
+            item => item.ModuloId == id, cancellationToken);
+        if (modulo is null)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "El módulo solicitado no existe.");
+        }
+
+        if (await db.Pisos.AnyAsync(piso => piso.ModuloId == id, cancellationToken))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "El módulo tiene pisos asociados y no puede eliminarse.",
+                detail: "Para conservar su historial, use PUT con activo=false.");
+        }
+
+        db.Modulos.Remove(modulo);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsForeignKeyViolation(ex))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "El módulo tiene registros relacionados y no puede eliminarse.",
+                detail: "Para conservar su historial, use PUT con activo=false.");
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "El módulo solicitado no existe.");
+        }
+
+        return NoContent();
+    }
+
     private static ModuloRespuestaDto ToResponse(Modulo modulo) =>
         new(modulo.ModuloId, modulo.Codigo, modulo.Nombre, modulo.Activo);
 
     private static bool IsUniqueViolation(DbUpdateException exception) =>
         exception.GetBaseException() is Microsoft.Data.SqlClient.SqlException sql
         && sql.Number is 2601 or 2627;
+
+    private static bool IsForeignKeyViolation(DbUpdateException exception) =>
+        exception.GetBaseException() is Microsoft.Data.SqlClient.SqlException sql
+        && sql.Number == 547;
 }
