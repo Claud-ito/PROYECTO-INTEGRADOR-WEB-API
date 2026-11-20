@@ -1,23 +1,33 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.EntityFrameworkCore;
+using PRE_EMERGENCIAS_WEB_API.Data;
 
-// Add services to the container.
+var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
+var builder = WebApplication.CreateBuilder(
+    args.Where(arg => !arg.Equals("--seed", StringComparison.OrdinalIgnoreCase)).ToArray());
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+var connection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Falta ConnectionStrings:DefaultConnection.");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connection));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// No se aplican migraciones ni se cargan datos al iniciar normalmente.
+if (seedRequested)
 {
-    app.MapOpenApi();
+    await using var scope = app.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+    app.Logger.LogInformation("Carga inicial finalizada; los datos existentes se conservaron.");
+    return;
 }
 
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
+
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
+
