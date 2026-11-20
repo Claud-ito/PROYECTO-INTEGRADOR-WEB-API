@@ -1,0 +1,245 @@
+# Pruebas del CRUD de Pisos — Integrante 2 (Alejandro)
+# Requisitos: migraciones aplicadas y carga inicial (--seed) ejecutada.
+# Datos del seed: M01 (ModuloId 1) y M02 (ModuloId 2) activos; M03 (ModuloId 3) inactivo.
+# Ejecutar en orden. Las solicitudes con "# @name" guardan el PisoId creado para las siguientes.
+# Si los ID de su base son otros, ajustar las variables.
+
+@base = http://localhost:5077
+@moduloActivo = 1
+@otroModuloActivo = 2
+@moduloInactivo = 3
+@pisoExistente = 1
+@pisoInexistente = 99999
+
+### P02 — Listar pisos (200)
+GET {{base}}/api/pisos
+Accept: application/json
+
+### P02 — Listar solo activos (200)
+GET {{base}}/api/pisos?soloActivos=true
+Accept: application/json
+
+### P02 — Filtro no válido (400)
+GET {{base}}/api/pisos?soloActivos=abc
+Accept: application/json
+
+### P03 — Obtener piso existente (200)
+GET {{base}}/api/pisos/{{pisoExistente}}
+Accept: application/json
+
+### P04 — Crear piso válido (201 + Location)
+# @name crear
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Piso 2"
+}
+
+### P05 — Seguir el Location de P04 (200)
+GET {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Accept: application/json
+
+### P06 — Actualizar el piso creado (204)
+PUT {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Segundo piso",
+  "activo": true
+}
+
+### P06 — GET posterior con el cambio (200)
+GET {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Accept: application/json
+
+### P07 — Crear piso temporal para eliminar (201)
+# @name temporal
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{otroModuloActivo}},
+  "denominacion": "Piso temporal"
+}
+
+### P07 — Eliminar piso sin referencias (204)
+DELETE {{base}}/api/pisos/{{temporal.response.body.$.pisoId}}
+
+### P07 — GET posterior a la eliminación (404)
+GET {{base}}/api/pisos/{{temporal.response.body.$.pisoId}}
+Accept: application/json
+
+### P08 — Denominación vacía (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": ""
+}
+
+### P08 — Denominación solo con espacios (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "   "
+}
+
+### P08 — Denominación ausente (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}}
+}
+
+### P08 — Denominación de más de 50 caracteres (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Denominacion demasiado larga para el limite de cincuenta"
+}
+
+### P08 — ModuloId no positivo (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": 0,
+  "denominacion": "Piso X"
+}
+
+### P09 — ModuloId inexistente (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": 999,
+  "denominacion": "Piso X"
+}
+
+### P10 — Denominación duplicada en el mismo módulo (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Piso 1"
+}
+
+### P10 — Duplicado con otras mayúsculas y espacios (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "  PISO 1 "
+}
+
+### P11 — Misma denominación en otro módulo activo (201)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{otroModuloActivo}},
+  "denominacion": "Segundo piso"
+}
+
+### P12 — GET de piso inexistente (404)
+GET {{base}}/api/pisos/{{pisoInexistente}}
+Accept: application/json
+
+### P12 — PUT de piso inexistente (404)
+PUT {{base}}/api/pisos/{{pisoInexistente}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Nada",
+  "activo": true
+}
+
+### P12 — DELETE de piso inexistente (404)
+DELETE {{base}}/api/pisos/{{pisoInexistente}}
+
+### P12 — ID no positivo (400)
+GET {{base}}/api/pisos/0
+Accept: application/json
+
+### P19 — Crear piso en módulo inactivo (400)
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloInactivo}},
+  "denominacion": "Piso 1"
+}
+
+### P19 — Trasladar piso a módulo inactivo (400)
+PUT {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloInactivo}},
+  "denominacion": "Segundo piso",
+  "activo": true
+}
+
+### PUT duplicando otro piso del módulo (400)
+PUT {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "piso 1",
+  "activo": true
+}
+
+### PUT sin el campo Activo (400)
+PUT {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Segundo piso"
+}
+
+### P20 — Baja lógica con Activo=false (204)
+PUT {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Segundo piso",
+  "activo": false
+}
+
+### P20 — GET posterior muestra Activo=false (200)
+GET {{base}}/api/pisos/{{crear.response.body.$.pisoId}}
+Accept: application/json
+
+### P20 — El listado con soloActivos=true omite la baja (200)
+GET {{base}}/api/pisos?soloActivos=true
+Accept: application/json
+
+### P21 — Persistencia (apoyo a Diana): crear un piso reconocible
+# Después: detener la API con Ctrl+C, arrancarla sin --seed y repetir el GET siguiente con el mismo ID.
+# @name persistencia
+POST {{base}}/api/pisos
+Content-Type: application/json
+
+{
+  "moduloId": {{moduloActivo}},
+  "denominacion": "Persistencia-20261119-A"
+}
+
+### P21 — GET del piso de persistencia (200 antes y después del reinicio)
+GET {{base}}/api/pisos/{{persistencia.response.body.$.pisoId}}
+Accept: application/json
