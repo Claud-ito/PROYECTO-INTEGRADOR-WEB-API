@@ -35,6 +35,7 @@ La conexión de ejemplo está en `PRE-EMERGENCIAS-WEB-API/appsettings.json`; usa
 - Proyecto: net10.0.
 - EF Core SQL Server y Design: 10.0.13.
 - Herramienta local dotnet-ef: 10.0.13.
+- System.Security.Cryptography.Pkcs: 10.0.13; referencia explicita para actualizar la dependencia transitiva 9.0.11 advertida por NuGet.
 - Microsoft.AspNetCore.OpenApi: 10.0.11. Se ajustó la referencia inicial 10.0.15 a la versión disponible para verificar esta entrega; se mantiene .NET 10.
 - SDK utilizado para verificar: 10.0.400.
 
@@ -62,4 +63,4 @@ dotnet run --project tests/Datos.Verificacion
 
 Comprueba el modelo, índices, longitudes, FK, SQL generado, snapshot, normalización y Activo. Intercepta el guardado: no conecta a SQL Server ni demuestra persistencia real.
 
-El estado de las pruebas ejecutadas y las pendientes está en [docs/Validacion_Diana.md](docs/Validacion_Diana.md). La instalación sobre SQL Server nuevo y P21 por API siguen pendientes mientras LocalDB no esté accesible y no se integren los controladores.
+El estado de las pruebas ejecutadas y las pendientes está en [docs/Validacion_Diana.md](docs/Validacion_Diana.md). Diana ya ejecutó la instalación sobre SQL Server nuevo y la carga inicial, según sus capturas. P21 por API requiere integrar los controladores.
