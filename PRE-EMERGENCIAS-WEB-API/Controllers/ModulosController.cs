@@ -69,4 +69,67 @@ public sealed class ModulosController(AppDbContext db) : ControllerBase
 
         return Ok(modulo);
     }
+
+    /// <summary>Crea un módulo activo y devuelve su ubicación.</summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(ModuloRespuestaDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ModuloRespuestaDto>> Create(
+        CrearModuloDto dto,
+        CancellationToken cancellationToken)
+    {
+        var codigo = dto.Codigo.Trim().ToUpperInvariant();
+        var nombre = dto.Nombre.Trim();
+
+        if (codigo.Length is 0 or > 20)
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "El código debe tener entre 1 y 20 caracteres.");
+        }
+
+        if (nombre.Length is 0 or > 100)
+        {
+            ModelState.AddModelError(nameof(dto.Nombre), "El nombre debe tener entre 1 y 100 caracteres.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (await db.Modulos.AnyAsync(modulo => modulo.Codigo == codigo, cancellationToken))
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "Ya existe un módulo con ese código.");
+            return ValidationProblem(ModelState);
+        }
+
+        var nuevo = new Modulo
+        {
+            Codigo = codigo,
+            Nombre = nombre,
+            Activo = true
+        };
+
+        db.Modulos.Add(nuevo);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "Ya existe un módulo con ese código.");
+            return ValidationProblem(ModelState);
+        }
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = nuevo.ModuloId },
+            ToResponse(nuevo));
+    }
+
+    private static ModuloRespuestaDto ToResponse(Modulo modulo) =>
+        new(modulo.ModuloId, modulo.Codigo, modulo.Nombre, modulo.Activo);
+
+    private static bool IsUniqueViolation(DbUpdateException exception) =>
+        exception.GetBaseException() is Microsoft.Data.SqlClient.SqlException sql
+        && sql.Number is 2601 or 2627;
 }
