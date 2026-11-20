@@ -1,0 +1,34 @@
+﻿
+@baseUrl = http://localhost:5077
+
+### P13 - Obtener modulo de un piso existente
+GET {{baseUrl}}/api/pisos/1/modulo
+Accept: application/json
+
+### P13b - Piso inexistente
+GET {{baseUrl}}/api/pisos/99999/modulo
+Accept: application/json
+
+### P13c - ID de piso invalido
+GET {{baseUrl}}/api/pisos/0/modulo
+Accept: application/json
+
+### P14 - Obtener pisos de un modulo
+GET {{baseUrl}}/api/modulos/1/pisos
+Accept: application/json
+
+### P15 - Modulo sin pisos
+GET {{baseUrl}}/api/modulos/3/pisos
+Accept: application/json
+
+### P16 - Modulo inexistente
+GET {{baseUrl}}/api/modulos/99999/pisos
+Accept: application/json
+
+### P16b - ID de modulo invalido
+GET {{baseUrl}}/api/modulos/0/pisos
+Accept: application/json
+
+### EXTRA - Filtrar pisos activos
+GET {{baseUrl}}/api/modulos/1/pisos?soloActivos=true
+Accept: application/json
