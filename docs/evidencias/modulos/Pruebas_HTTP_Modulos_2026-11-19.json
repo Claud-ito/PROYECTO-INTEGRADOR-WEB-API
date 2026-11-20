@@ -1,0 +1,210 @@
+{
+  "executedAt": "2026-11-19T20:21:34-04:00",
+  "baseUrl": "http://127.0.0.1:5188",
+  "databaseName": "UnivalleEmergenciasApi_Pruebas",
+  "verificationContext": "Copia temporal de integración con SQL Server LocalDB; infraestructura aún no integrada en feature/modulos",
+  "moduloConPisosId": 2,
+  "passed": true,
+  "results": [
+    {
+      "method": "GET",
+      "path": "/api/modulos",
+      "requestBody": null,
+      "status": 200,
+      "location": "",
+      "responseBody": "[{\"moduloId\":1,\"codigo\":\"M03\",\"nombre\":\"Modulo tres\",\"activo\":false},{\"moduloId\":2,\"codigo\":\"M04\",\"nombre\":\"Modulo cuatro\",\"activo\":true}]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/999999",
+      "requestBody": null,
+      "status": 404,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.5\",\"title\":\"El módulo solicitado no existe.\",\"status\":404,\"traceId\":\"00-493082e621fe28fd9ab8cad8e80a7e76-ab9746b60f92b99f-00\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/0",
+      "requestBody": null,
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"El ID del módulo debe ser positivo.\",\"status\":400,\"traceId\":\"00-1597b0541b1d7edc65e7599d5283fb2c-e685d85c85348b96-00\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos?soloActivos=invalido",
+      "requestBody": null,
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"soloActivos\":[\"The value 'invalido' is not valid.\"]},\"traceId\":\"00-2f6ea5eb931c6d5155b03a78d8805079-b31329cdbc9c2e43-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\" Modulo de prueba \",\"codigo\":\" T3-17D199D9 \"}",
+      "status": 201,
+      "location": "http://127.0.0.1:5188/api/modulos/1007",
+      "responseBody": "{\"moduloId\":1007,\"codigo\":\"T3-17D199D9\",\"nombre\":\"Modulo de prueba\",\"activo\":true}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/1007",
+      "requestBody": null,
+      "status": 200,
+      "location": "",
+      "responseBody": "{\"moduloId\":1007,\"codigo\":\"T3-17D199D9\",\"nombre\":\"Modulo de prueba\",\"activo\":true}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\"Duplicado\",\"codigo\":\"t3-17d199d9\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Codigo\":[\"Ya existe un módulo con ese código.\"]},\"traceId\":\"00-c4c8a6fafa8016da7defbc1988b4618b-abaaa73706b4f7ba-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\"Nombre\",\"codigo\":\"   \"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Codigo\":[\"El código es obligatorio.\"]},\"traceId\":\"00-0d68e1805669c22ebb6437fadca8e83d-be7768a1fa71c608-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\"   \",\"codigo\":\"T3-17D199D9-X\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Nombre\":[\"El nombre es obligatorio.\"]},\"traceId\":\"00-ee1134d659b7a2c32a84e1b85bb090f9-0ec2629138040621-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\"Largo\",\"codigo\":\"123456789012345678901\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Codigo\":[\"El código no puede superar 20 caracteres.\"]},\"traceId\":\"00-adea0b51e1b8c94b8fb1957aeb221f4b-4cd62c36167e4825-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"codigo\":\"T3-17D199D9-Y\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Nombre\":[\"El nombre es obligatorio.\"]},\"traceId\":\"00-f0264efc85e0326e1868df3dc66e53d9-7e9992db82139126-00\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/modulos/1007",
+      "requestBody": "{\"codigo\":\"t3-17d199d9\",\"activo\":false,\"nombre\":\" Modulo actualizado \"}",
+      "status": 204,
+      "location": "",
+      "responseBody": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/1007",
+      "requestBody": null,
+      "status": 200,
+      "location": "",
+      "responseBody": "{\"moduloId\":1007,\"codigo\":\"T3-17D199D9\",\"nombre\":\"Modulo actualizado\",\"activo\":false}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos?soloActivos=true",
+      "requestBody": null,
+      "status": 200,
+      "location": "",
+      "responseBody": "[{\"moduloId\":2,\"codigo\":\"M04\",\"nombre\":\"Modulo cuatro\",\"activo\":true}]"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/modulos/1007",
+      "requestBody": "{\"nombre\":\"Sin activo\",\"codigo\":\"T3-17D199D9\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Activo\":[\"El estado activo es obligatorio.\"]},\"traceId\":\"00-50fb7613423b6f8c794cc7624f26482a-558d672750bc1dca-00\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/modulos/999999",
+      "requestBody": "{\"codigo\":\"T3-17D199D9\",\"activo\":true,\"nombre\":\"Inexistente\"}",
+      "status": 404,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.5\",\"title\":\"El módulo solicitado no existe.\",\"status\":404,\"traceId\":\"00-f4410840ab614594df4fb8643916c497-2f8e883d8db732e6-00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/modulos",
+      "requestBody": "{\"nombre\":\"Otro módulo\",\"codigo\":\"T3-17D199D9-B\"}",
+      "status": 201,
+      "location": "http://127.0.0.1:5188/api/modulos/1008",
+      "responseBody": "{\"moduloId\":1008,\"codigo\":\"T3-17D199D9-B\",\"nombre\":\"Otro módulo\",\"activo\":true}"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/modulos/1007",
+      "requestBody": "{\"codigo\":\"t3-17d199d9-b\",\"activo\":true,\"nombre\":\"Duplicado\"}",
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"One or more validation errors occurred.\",\"status\":400,\"errors\":{\"Codigo\":[\"Ya existe otro módulo con ese código.\"]},\"traceId\":\"00-e886381a11f83ef15dc8fc634342a652-c79acea0110ee1ab-00\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/modulos/2",
+      "requestBody": null,
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"El módulo tiene pisos asociados y no puede eliminarse.\",\"status\":400,\"detail\":\"Para conservar su historial, use PUT con activo=false.\",\"traceId\":\"00-03fddce43f6575df92758155cae86c53-5d929a7c9da898cb-00\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/modulos/1008",
+      "requestBody": null,
+      "status": 204,
+      "location": "",
+      "responseBody": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/1008",
+      "requestBody": null,
+      "status": 404,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.5\",\"title\":\"El módulo solicitado no existe.\",\"status\":404,\"traceId\":\"00-3e07a95771a7e1f5db646bbdac8db54b-71dc1c9d7e148a0c-00\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/modulos/1007",
+      "requestBody": null,
+      "status": 204,
+      "location": "",
+      "responseBody": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/modulos/1007",
+      "requestBody": null,
+      "status": 404,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.5\",\"title\":\"El módulo solicitado no existe.\",\"status\":404,\"traceId\":\"00-70a4767d01c6116dfb4027495d629a55-9d242620264c7851-00\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/modulos/999999",
+      "requestBody": null,
+      "status": 404,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.5\",\"title\":\"El módulo solicitado no existe.\",\"status\":404,\"traceId\":\"00-79eda7f896e862dbcc03a87505af7abe-03118417f8e352de-00\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/modulos/0",
+      "requestBody": null,
+      "status": 400,
+      "location": "",
+      "responseBody": "{\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\"title\":\"El ID del módulo debe ser positivo.\",\"status\":400,\"traceId\":\"00-4137eff82c723de443054ef3ba48226d-b60428b35f61cce3-00\"}"
+    }
+  ]
+}

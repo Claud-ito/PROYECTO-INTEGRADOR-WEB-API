@@ -1,0 +1,111 @@
+# Pruebas manuales del CRUD de Módulos (integrante 3).
+# Ejecute la API con la migración SQL Server aplicada. Cambie codigoPrueba en cada repetición.
+# Después del POST, copie moduloId del cuerpo o del encabezado Location a moduloId.
+# Use un módulo con pisos reales para moduloConPisosId y otro recién creado para moduloSinPisosId.
+
+@baseUrl = http://localhost:5077
+@codigoPrueba = T3-PRUEBA-01
+@moduloId = REEMPLAZAR_ID_CREADO
+@moduloConPisosId = REEMPLAZAR_ID_CON_PISOS
+@moduloSinPisosId = REEMPLAZAR_ID_SIN_PISOS
+
+### Listar todos, incluidos los inactivos: 200
+GET {{baseUrl}}/api/modulos
+Accept: application/json
+
+### Listar solo activos: 200
+GET {{baseUrl}}/api/modulos?soloActivos=true
+Accept: application/json
+
+### Crear: 201, Location y DTO normalizado
+POST {{baseUrl}}/api/modulos
+Content-Type: application/json
+
+{
+  "codigo": " {{codigoPrueba}} ",
+  "nombre": " Módulo de prueba "
+}
+
+### Seguir el ID devuelto en Location: 200
+GET {{baseUrl}}/api/modulos/{{moduloId}}
+Accept: application/json
+
+### Código repetido, incluso si cambia la caja: 400
+POST {{baseUrl}}/api/modulos
+Content-Type: application/json
+
+{
+  "codigo": "{{codigoPrueba}}",
+  "nombre": "Duplicado"
+}
+
+### Texto solo con espacios: 400
+POST {{baseUrl}}/api/modulos
+Content-Type: application/json
+
+{
+  "codigo": "   ",
+  "nombre": "Módulo inválido"
+}
+
+### Nombre ausente: 400
+POST {{baseUrl}}/api/modulos
+Content-Type: application/json
+
+{
+  "codigo": "T3-SIN-NOMBRE"
+}
+
+### Actualizar y dar de baja lógicamente: 204
+PUT {{baseUrl}}/api/modulos/{{moduloId}}
+Content-Type: application/json
+
+{
+  "codigo": "{{codigoPrueba}}",
+  "nombre": "Módulo actualizado",
+  "activo": false
+}
+
+### Comprobar la baja lógica: 200 con activo=false
+GET {{baseUrl}}/api/modulos/{{moduloId}}
+Accept: application/json
+
+### PUT sin activo: 400
+PUT {{baseUrl}}/api/modulos/{{moduloId}}
+Content-Type: application/json
+
+{
+  "codigo": "{{codigoPrueba}}",
+  "nombre": "Falta estado"
+}
+
+### Módulo inexistente: 404
+GET {{baseUrl}}/api/modulos/999999
+Accept: application/json
+
+### ID no positivo: 400
+GET {{baseUrl}}/api/modulos/0
+Accept: application/json
+
+### PUT de módulo inexistente: 404
+PUT {{baseUrl}}/api/modulos/999999
+Content-Type: application/json
+
+{
+  "codigo": "T3-INEXISTENTE",
+  "nombre": "No existe",
+  "activo": true
+}
+
+### DELETE con pisos asociados: 400 y explicación
+DELETE {{baseUrl}}/api/modulos/{{moduloConPisosId}}
+
+### DELETE de un módulo de prueba sin pisos: 204
+DELETE {{baseUrl}}/api/modulos/{{moduloSinPisosId}}
+
+### Confirmar eliminación física: 404
+GET {{baseUrl}}/api/modulos/{{moduloSinPisosId}}
+Accept: application/json
+
+### DELETE de módulo inexistente: 404
+DELETE {{baseUrl}}/api/modulos/999999
