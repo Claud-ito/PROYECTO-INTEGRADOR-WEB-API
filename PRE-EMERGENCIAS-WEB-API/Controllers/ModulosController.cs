@@ -126,6 +126,71 @@ public sealed class ModulosController(AppDbContext db) : ControllerBase
             ToResponse(nuevo));
     }
 
+    /// <summary>Reemplaza los campos editables de un módulo, incluido su estado activo.</summary>
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+        int id,
+        ActualizarModuloDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "El ID del módulo debe ser positivo.");
+        }
+
+        var modulo = await db.Modulos.SingleOrDefaultAsync(
+            item => item.ModuloId == id, cancellationToken);
+        if (modulo is null)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "El módulo solicitado no existe.");
+        }
+
+        var codigo = dto.Codigo.Trim().ToUpperInvariant();
+        var nombre = dto.Nombre.Trim();
+        if (codigo.Length is 0 or > 20)
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "El código debe tener entre 1 y 20 caracteres.");
+        }
+
+        if (nombre.Length is 0 or > 100)
+        {
+            ModelState.AddModelError(nameof(dto.Nombre), "El nombre debe tener entre 1 y 100 caracteres.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (await db.Modulos.AnyAsync(
+            item => item.Codigo == codigo && item.ModuloId != id, cancellationToken))
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "Ya existe otro módulo con ese código.");
+            return ValidationProblem(ModelState);
+        }
+
+        modulo.Codigo = codigo;
+        modulo.Nombre = nombre;
+        modulo.Activo = dto.Activo!.Value;
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            ModelState.AddModelError(nameof(dto.Codigo), "Ya existe otro módulo con ese código.");
+            return ValidationProblem(ModelState);
+        }
+
+        return NoContent();
+    }
+
     private static ModuloRespuestaDto ToResponse(Modulo modulo) =>
         new(modulo.ModuloId, modulo.Codigo, modulo.Nombre, modulo.Activo);
 
