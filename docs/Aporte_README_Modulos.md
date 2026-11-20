@@ -30,9 +30,9 @@ Las rutas usan `AppDbContext` inyectado y métodos asíncronos de EF Core. El co
 pwsh -File docs/pruebas/VerificarModulos.ps1 -BaseUrl http://localhost:5077 -ModuloConPisosId ID_REAL_CON_PISOS -OutputPath docs/evidencias/modulos/resultado-local.json -DatabaseName NOMBRE_DE_LA_BASE
 ```
 
-El script crea módulos con códigos únicos, comprueba los códigos HTTP y los elimina al terminar. `-ModuloConPisosId` permite comprobar el rechazo por dependencia y debe identificar un módulo que ya tenga pisos. El archivo JSON contiene método, ruta, cuerpo enviado, estado, `Location` y cuerpo realmente recibido. Si se omite ese parámetro, la comprobación de dependencia no se ejecuta.
+El script crea módulos con códigos únicos, comprueba los códigos HTTP y los elimina si la ejecución termina correctamente. `-ModuloConPisosId` permite comprobar el rechazo por dependencia y debe identificar un módulo que ya tenga pisos. El archivo JSON contiene método, ruta, cuerpo enviado, estado, `Location` y cuerpo realmente recibido. Si se omite ese parámetro, la comprobación de dependencia no se ejecuta.
 
-La evidencia JSON incluida se obtuvo en una **copia temporal de integración** con EF Core 10 y LocalDB, ya que la rama de datos del integrante 1 aún no está en este repositorio. Debe repetirse sobre la versión integrada antes del PDF final; el integrante 4 aportará las capturas de Swagger y las consultas relacionadas.
+La rama `feature/modulos` depende de la base del integrante 1 para compilar y ejecutar la API completa. La evidencia JSON incluida se obtuvo en una **copia temporal de integración** con EF Core 10 y LocalDB, porque esa base aún no está integrada en la rama de entrega. Las pruebas y capturas definitivas deben repetirse sobre la versión integrada antes del PDF final; el integrante 4 reúne las capturas de Swagger y las consultas relacionadas.
 
 ## Datos confirmados del grupo para la integración
 

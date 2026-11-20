@@ -187,6 +187,11 @@ public sealed class ModulosController(AppDbContext db) : ControllerBase
             ModelState.AddModelError(nameof(dto.Codigo), "Ya existe otro módulo con ese código.");
             return ValidationProblem(ModelState);
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "El módulo solicitado no existe.");
+        }
 
         return NoContent();
     }

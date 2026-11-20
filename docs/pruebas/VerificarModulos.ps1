@@ -76,7 +76,8 @@ try {
     if (!$created.location.EndsWith("/api/modulos/$moduloId")) {
         throw "El encabezado Location no apunta al módulo creado: $($created.location)"
     }
-    Assert-Status (Invoke-Api GET "/api/modulos/$moduloId") 200
+    $locationUri = [uri]$created.location
+    Assert-Status (Invoke-Api GET $locationUri.PathAndQuery) 200
     Assert-Status (Invoke-Api POST '/api/modulos' @{ codigo = $codigo.ToLowerInvariant(); nombre = 'Duplicado' }) 400
     Assert-Status (Invoke-Api POST '/api/modulos' @{ codigo = '   '; nombre = 'Nombre' }) 400
     Assert-Status (Invoke-Api POST '/api/modulos' @{ codigo = "T3-$suffix-X"; nombre = '   ' }) 400
@@ -90,11 +91,17 @@ try {
     if ($updatedBody.nombre -ne 'Modulo actualizado' -or $updatedBody.activo) {
         throw 'PUT no persistió el nombre o la baja lógica.'
     }
+    $allList = Invoke-Api GET '/api/modulos'
+    Assert-Status $allList 200
+    if (($allList.responseBody | ConvertFrom-Json | Where-Object moduloId -eq $moduloId).Count -ne 1) {
+        throw 'La lista general ocultó un módulo inactivo.'
+    }
     $activeList = Invoke-Api GET '/api/modulos?soloActivos=true'
     Assert-Status $activeList 200
     if (($activeList.responseBody | ConvertFrom-Json | Where-Object moduloId -eq $moduloId).Count -ne 0) {
         throw 'soloActivos=true incluyó un módulo inactivo.'
     }
+    Assert-Status (Invoke-Api POST '/api/modulos' @{ codigo = $codigo; nombre = 'Duplicado inactivo' }) 400
     Assert-Status (Invoke-Api PUT "/api/modulos/$moduloId" @{ codigo = $codigo; nombre = 'Sin activo' }) 400
     Assert-Status (Invoke-Api PUT '/api/modulos/999999' @{ codigo = $codigo; nombre = 'Inexistente'; activo = $true }) 404
 
@@ -104,7 +111,11 @@ try {
     Assert-Status (Invoke-Api PUT "/api/modulos/$moduloId" @{ codigo = $codigoOtro.ToLowerInvariant(); nombre = 'Duplicado'; activo = $true }) 400
 
     if ($ModuloConPisosId -gt 0) {
-        Assert-Status (Invoke-Api DELETE "/api/modulos/$ModuloConPisosId") 400
+        $dependentDelete = Invoke-Api DELETE "/api/modulos/$ModuloConPisosId"
+        Assert-Status $dependentDelete 400
+        if (!$dependentDelete.responseBody.Contains('pisos asociados')) {
+            throw 'DELETE rechazó el módulo, pero no explicó la dependencia con pisos.'
+        }
     }
 
     Assert-Status (Invoke-Api DELETE "/api/modulos/$otroId") 204
